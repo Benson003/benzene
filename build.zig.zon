@@ -1,0 +1,7 @@
+.{
+    .name = .benzc,
+    .version = "0.0.1",
+    .minimum_zig_version = "0.17.0-dev.892+54537285c",
+    .paths = .{""},
+    .fingerprint = 0x6a0a93b529beb880,
+}
