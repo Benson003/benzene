@@ -12,12 +12,18 @@ pub fn main() !void {
     _ = try scheduler.spawn(b);
     scheduler.run();
 }
-fn a() void {
+fn a(s: *Scheduler) void {
     std.debug.print("A1\n", .{});
+    s.yield();
     std.debug.print("A2\n", .{});
+    s.yield();
+    std.debug.print("A3\n", .{});
 }
 
-fn b() void {
+fn b(s: *Scheduler) void {
     std.debug.print("B1\n", .{});
+    s.yield();
     std.debug.print("B2\n", .{});
+    s.yield();
+    std.debug.print("B3\n", .{});
 }

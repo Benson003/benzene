@@ -46,7 +46,7 @@ const Fiber = struct {
     context: Context,
     state: State,
     next: ?*Fiber,
-    entry_fn: ?*const fn () void,
+    entry_fn: ?*const fn (*Scheduler) void,
 };
 
 const FiberError = error{
@@ -141,7 +141,7 @@ pub fn deinit(self: *Scheduler) void {
     self.allocator.destroy(self.main_fiber);
 }
 
-pub fn spawn(self: *Scheduler, func: *const fn () void) SchedulerError!*Fiber {
+pub fn spawn(self: *Scheduler, func: *const fn (*Scheduler) void) SchedulerError!*Fiber {
     const fiber = self.create_fiber(func) catch |err| {
         switch (err) {
             FiberError.FailedToAllocateFiber => return SchedulerError.FailedToAllocateFiber,
@@ -186,7 +186,7 @@ extern fn switch_context(from: *Context, to: *Context) callconv(.c) void;
 fn fiber_trampoline(self: *Scheduler) callconv(.c) noreturn {
     const fiber = self.current_fiber.?;
     fiber.state = .Running;
-    fiber.entry_fn.?();
+    fiber.entry_fn.?(self);
     fiber.state = .Completed;
     self.fiber_exit();
     unreachable;
@@ -198,7 +198,7 @@ fn fiber_exit(self: *Scheduler) noreturn {
     unreachable;
 }
 
-fn create_fiber(self: *Scheduler, func: *const fn () void) FiberError!*Fiber {
+fn create_fiber(self: *Scheduler, func: *const fn (*Scheduler) void) FiberError!*Fiber {
     const stack_bytes: []u8 = self.allocator.alloc(u8, 64 * 1024) catch return FiberError.FailedToAllocateStack;
     const fiber = self.allocator.create(Fiber) catch return FiberError.FailedToAllocateFiber;
 
